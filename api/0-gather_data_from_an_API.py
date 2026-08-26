@@ -1,30 +1,21 @@
 #!/usr/bin/python3
-"""Gather data from an API.
-
-Given an employee ID, this script queries a REST API
-(https://jsonplaceholder.typicode.com) and displays that
-employee's TODO list progress.
-
-Usage:
-    ./0-gather_data_from_an_API.py <employee_id>
-"""
-
-import requests
 import sys
+import requests
 
 
 if __name__ == "__main__":
-    employee_id = sys.argv[1]
+    employee_id = int(sys.argv[1])
+
     base_url = "https://jsonplaceholder.typicode.com"
 
-    user_response = requests.get("{}/users/{}".format(base_url, employee_id))
+    user_url = "{}/users/{}".format(base_url, employee_id)
+    todos_url = "{}/todos".format(base_url)
+
+    user_response = requests.get(user_url)
     user_data = user_response.json()
     employee_name = user_data.get("name")
 
-    todos_response = requests.get(
-        "{}/todos".format(base_url),
-        params={"userId": employee_id}
-    )
+    todos_response = requests.get(todos_url, params={"userId": employee_id})
     todos_data = todos_response.json()
 
     total_tasks = len(todos_data)

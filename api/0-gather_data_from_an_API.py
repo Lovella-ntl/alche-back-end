@@ -1,43 +1,38 @@
 #!/usr/bin/python3
-"""Export employee TODO list progress to CSV format."""
-import csv
+"""Gather data from an API.
+
+Given an employee ID, this script queries a REST API
+(https://jsonplaceholder.typicode.com) and displays that
+employee's TODO list progress.
+
+Usage:
+    ./0-gather_data_from_an_API.py <employee_id>
+"""
+
 import requests
 import sys
 
 
-def export_to_csv():
-    """Fetch user tasks from API and write to USER_ID.csv."""
-    if len(sys.argv) < 2:
-        return
-
-    user_id = sys.argv[1]
-    url = "https://jsonplaceholder.typicode.com"
-
-    # Fetch user data
-    user_res = requests.get(f"{url}/users/{user_id}")
-    if user_res.status_code != 200:
-        return
-    user_data = user_res.json()
-    username = user_data.get("username")
-
-    # Fetch todos data
-    todos_res = requests.get(f"{url}/todos", params={"userId": user_id})
-    if todos_res.status_code != 200:
-        return
-    todos_data = todos_res.json()
-
-    filename = f"{user_id}.csv"
-
-    with open(filename, mode="w", newline="", encoding="utf-8") as csv_file:
-        writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
-        for task in todos_data:
-            writer.writerow([
-                str(user_id),
-                username,
-                task.get("completed"),
-                task.get("title")
-            ])
-
-
 if __name__ == "__main__":
-    export_to_csv()
+    employee_id = sys.argv[1]
+    base_url = "https://jsonplaceholder.typicode.com"
+
+    user_response = requests.get("{}/users/{}".format(base_url, employee_id))
+    user_data = user_response.json()
+    employee_name = user_data.get("name")
+
+    todos_response = requests.get(
+        "{}/todos".format(base_url),
+        params={"userId": employee_id}
+    )
+    todos_data = todos_response.json()
+
+    total_tasks = len(todos_data)
+    done_tasks = [task for task in todos_data if task.get("completed") is True]
+    number_of_done_tasks = len(done_tasks)
+
+    print("Employee {} is done with tasks({}/{}):".format(
+        employee_name, number_of_done_tasks, total_tasks))
+
+    for task in done_tasks:
+        print("\t {}".format(task.get("title")))
